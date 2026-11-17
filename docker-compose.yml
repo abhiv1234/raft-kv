@@ -1,0 +1,31 @@
+# Three-node cluster. Client (HTTP) ports are published as 8001-8003 on localhost.
+# The 4th field of each peer ("localhost") is the address clients use to reach that node;
+# it is what a follower puts in its 307 redirect to the leader.
+#
+#   docker compose up --build
+#   curl -L -X PUT --data-binary hello http://localhost:8001/kv/greeting
+#   curl -L http://localhost:8002/kv/greeting
+#   docker compose kill node1        # kill a node, the others keep serving
+x-peers: &peers "node1=node1:7001:8001:localhost,node2=node2:7002:8002:localhost,node3=node3:7003:8003:localhost"
+
+services:
+  node1:
+    build: .
+    command: ["--id", "node1", "--peers", *peers, "--data-dir", "/data"]
+    ports: ["8001:8001"]
+    volumes: ["node1-data:/data"]
+  node2:
+    build: .
+    command: ["--id", "node2", "--peers", *peers, "--data-dir", "/data"]
+    ports: ["8002:8002"]
+    volumes: ["node2-data:/data"]
+  node3:
+    build: .
+    command: ["--id", "node3", "--peers", *peers, "--data-dir", "/data"]
+    ports: ["8003:8003"]
+    volumes: ["node3-data:/data"]
+
+volumes:
+  node1-data:
+  node2-data:
+  node3-data:
